@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.btg.shared.error.ApiError;
 import org.btg.shared.error.BadRequestError;
 import org.btg.shared.error.InternalError;
+import org.btg.shared.error.NotFoundError;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -23,11 +24,10 @@ public class ResponseUtil<T, S> {
   @JsonIgnore
   public int status;
 
-  @Data
-  public static class Meta {
-    private int limit;
-    private int offset;
-    private int total;
+  public record Meta(
+      int limit,
+      int offset,
+      Long total) {
   }
 
   public static enum StatusUtil {
@@ -35,6 +35,7 @@ public class ResponseUtil<T, S> {
     CREATED(201),
     NO_CONTENT(204),
     BAD_REQUEST(400),
+    NOT_FOUND(404),
     SERVER_ERROR(500);
 
     private int status;
@@ -53,6 +54,7 @@ public class ResponseUtil<T, S> {
       String serverError = "Internal Server Error";
       return switch (e) {
         case ApiError a -> new ResponseError(StatusUtil.SERVER_ERROR.get(), new ErrorMessage(serverError, null));
+        case NotFoundError n -> new ResponseError(StatusUtil.NOT_FOUND.get(), new ErrorMessage(n.getMessage(), null));
         case BadRequestError b ->
           new ResponseError(StatusUtil.BAD_REQUEST.get(), new ErrorMessage(b.getMessage(), b.getValues()));
         case InternalError i -> new ResponseError(StatusUtil.SERVER_ERROR.get(), new ErrorMessage(serverError, null));
