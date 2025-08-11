@@ -6,11 +6,12 @@ import java.util.List;
 import org.btg.app.dto.output.OrderOutputDto;
 import org.btg.app.dto.output.OrderOutputDto.TotalOrderPrice;
 import org.btg.core.entity.OrderEntity;
+import org.btg.shared.error.ConstraintError;
 import org.btg.shared.error.DbError;
 import org.btg.shared.error.NotFoundError;
 
 public interface OrderRepositoryPort {
-  void createOrder(int order, int codClient) throws DbError;
+  void createOrder(int order, int codClient) throws DbError, ConstraintError;
 
   void insertOrderItems(int order, List<OrderEntity.OrderItem> entities) throws DbError;
 

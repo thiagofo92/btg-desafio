@@ -12,6 +12,7 @@ import org.btg.app.dto.output.OrderOutputDto.TotalOrder;
 import org.btg.app.dto.output.OrderOutputDto.TotalOrderPrice;
 import org.btg.core.entity.OrderEntity.OrderItem;
 import org.btg.infra.port.repository.OrderRepositoryPort;
+import org.btg.shared.error.ConstraintError;
 import org.btg.shared.error.DbError;
 import org.btg.shared.error.NotFoundError;
 
@@ -26,7 +27,7 @@ public class OrderRepository implements OrderRepositoryPort {
   AgroalDataSource connectionPool;
 
   @Override
-  public void createOrder(int order, int codClient) throws DbError {
+  public void createOrder(int order, int codClient) throws DbError, ConstraintError {
     String sql = """
         insert into btg.order (id, id_client) values (?,?)
             """;
@@ -39,6 +40,9 @@ public class OrderRepository implements OrderRepositoryPort {
 
       ps.executeUpdate();
     } catch (Exception e) {
+      if (e.getMessage().contains("constraint")) {
+        throw new ConstraintError(e, String.format("codigoPedido - %d", order));
+      }
       throw new DbError(e);
     }
   }
@@ -175,7 +179,6 @@ public class OrderRepository implements OrderRepositoryPort {
         if (!rs.next())
           throw new NotFoundError(new Exception("Not Found"), "Order Not found");
 
-        System.out.println("HERE");
         var output = new TotalOrderPrice();
         output.setCodOrder(rs.getInt("id_order"));
         output.setTotalPrice(rs.getBigDecimal("total_price"));

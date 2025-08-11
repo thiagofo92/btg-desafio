@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.btg.shared.error.ApiError;
 import org.btg.shared.error.BadRequestError;
+import org.btg.shared.error.ConstraintError;
 import org.btg.shared.error.InternalError;
 import org.btg.shared.error.NotFoundError;
 
@@ -57,6 +58,8 @@ public class ResponseUtil<T, S> {
         case NotFoundError n -> new ResponseError(StatusUtil.NOT_FOUND.get(), new ErrorMessage(n.getMessage(), null));
         case BadRequestError b ->
           new ResponseError(StatusUtil.BAD_REQUEST.get(), new ErrorMessage(b.getMessage(), b.getValues()));
+        case ConstraintError c ->
+          new ResponseError(StatusUtil.BAD_REQUEST.get(), new ErrorMessage(c.getMessage(), c.getValue()));
         case InternalError i -> new ResponseError(StatusUtil.SERVER_ERROR.get(), new ErrorMessage(serverError, null));
         default -> DefaultError(e);
       };
