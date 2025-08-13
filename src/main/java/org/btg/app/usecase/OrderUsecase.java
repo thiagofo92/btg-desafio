@@ -13,6 +13,7 @@ import org.btg.app.util.ResponseUtil.Meta;
 import org.btg.app.util.ResponseUtil.StatusUtil;
 import org.btg.core.entity.OrderEntity;
 import org.btg.infra.port.repository.OrderRepositoryPort;
+import org.btg.infra.port.service.QueueServicePort;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -22,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OrderUsecase {
   private final OrderRepositoryPort repository;
+  private final QueueServicePort service;
 
   @Transactional
   public ResponseUtil<Void, ErrorMessage> create(OrderInputDto input) {
@@ -118,6 +120,20 @@ public class OrderUsecase {
 
     return entities;
 
+  }
+
+  public ResponseUtil<Void, ErrorMessage> emitte(OrderInputDto input) {
+    ResponseUtil.ResponseUtilBuilder<Void, ErrorMessage> result = ResponseUtil.builder();
+    try {
+      this.service.emitte(input);
+      result.status(ResponseUtil.StatusUtil.ACCEPTED.get());
+    } catch (Exception e) {
+      var err = ErrorUtil.getError(e);
+      result.status(err.status());
+      result.error(Optional.of(err.data()));
+    }
+
+    return result.build();
   }
 
 }

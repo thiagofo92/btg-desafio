@@ -22,7 +22,7 @@ public class RabbitMQConsume {
   @Inject
   OrderUsecase usecase;
 
-  @Incoming("btg-orders")
+  @Incoming("btg-orders-in")
   @Blocking
   public CompletionStage<Void> consume(Message<byte[]> message) throws InterruptedException {
     try {
@@ -31,7 +31,7 @@ public class RabbitMQConsume {
       OrderInputDto dto = mapper.readValue(json, OrderInputDto.class);
       var result = this.usecase.create(dto);
 
-      if (result.error.isPresent()) {
+      if (result.error != null && result.error.isPresent()) {
         return message.nack(new Exception(result.error.get().getMessage()));
       }
 
