@@ -2,6 +2,8 @@ package org.btg.app.middleware;
 
 import java.io.IOException;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -12,6 +14,9 @@ import jakarta.ws.rs.ext.Provider;
 @Provider
 @Priority(Priorities.AUTHENTICATION)
 public class AuthMiddleware implements ContainerRequestFilter {
+
+  @ConfigProperty(name = "middleware.token")
+  private String token;
 
   @Override
   public void filter(ContainerRequestContext ctx) throws IOException {
@@ -25,7 +30,7 @@ public class AuthMiddleware implements ContainerRequestFilter {
       return;
     }
 
-    if (!auth.contains("asdf1234023")) {
+    if (!auth.contains(this.token)) {
       ctx.abortWith(Response
           .status(Response.Status.UNAUTHORIZED)
           .entity("Invalid Token")

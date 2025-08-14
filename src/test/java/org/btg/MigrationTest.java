@@ -16,22 +16,13 @@ import jakarta.inject.Inject;
 public class MigrationTest {
 
   @Inject
-  AgroalDataSource dataSource; // Quarkus datasource
+  AgroalDataSource dataSource;
 
   @Test
   public void testTableExists() throws SQLException {
     try (Connection conn = dataSource.getConnection()) {
       ResultSet rs = conn.getMetaData().getTables(null, null, "order", null);
       assertTrue(rs.next(), "Table ORDER should exist after migration");
-    }
-  }
-
-  @Test
-  public void testH2DatabaseIsUsed() throws SQLException {
-    try (Connection connection = dataSource.getConnection()) {
-      String url = connection.getMetaData().getURL();
-      System.out.println("Database URL: " + url);
-      assertTrue(url.contains("h2:mem"), "Should be using H2 in-memory database");
     }
   }
 

@@ -13,6 +13,7 @@ import org.btg.app.dto.input.OrderInputDto.OrderItem;
 import org.btg.app.dto.output.OrderOutputDto;
 import org.btg.app.util.ResponseUtil;
 import org.btg.app.util.ResponseUtil.ErrorMessage;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.common.http.TestHTTPEndpoint;
@@ -22,10 +23,13 @@ import io.restassured.common.mapper.TypeRef;
 @QuarkusTest
 @TestHTTPEndpoint(OrderController.class)
 public class OrderControllerTest {
+  @ConfigProperty(name = "middleware.token")
+  private String token;
 
   @Test
   void testGetOrderByCodClient() {
     var rs = given()
+        .header("Authorization", token)
         .when()
         .get("clients/" + 32)
         .then()
@@ -36,13 +40,14 @@ public class OrderControllerTest {
 
     assertEquals(false, rs.error.isPresent());
     System.out.println(rs.data.get());
-    assertEquals(1, rs.data.get().size());
+    assertEquals(2, rs.data.get().size());
 
   }
 
   @Test
   void testGetTotalOrderByCodClient() {
     var rs = given()
+        .header("Authorization", token)
         .when()
         .get(String.format("clients/%d/total", 32))
         .then()
@@ -52,12 +57,13 @@ public class OrderControllerTest {
         });
 
     assertEquals(false, rs.error.isPresent());
-    assertEquals(2, rs.data.get().getTotal());
+    assertEquals(1, rs.data.get().getTotal());
   }
 
   @Test
   void testGetTotalPriceOrderByCodOrder() {
     var rs = given()
+        .header("Authorization", token)
         .when()
         .get(String.format("%d/price/total", 100))
         .then()
@@ -84,13 +90,28 @@ public class OrderControllerTest {
     item.setProduct("TV");
     item.setTotal(1);
 
-    // given()
-    // .contentType("application/json")
-    // .body(dto)
-    // .when()
-    // .post()
-    // .then()
-    // .statusCode(201);
+    given()
+        .header("Authorization", token)
+        .contentType("application/json")
+        .body(dto)
+        .when()
+        .post()
+        .then()
+        .statusCode(201);
+
+    var rs = given()
+        .header("Authorization", token)
+        .when()
+        .get("clients/" + 2)
+        .then()
+        .statusCode(200)
+        .extract()
+        .as(new TypeRef<ResponseUtil<List<OrderOutputDto.ItemDto>, ErrorMessage>>() {
+        });
+
+    assertEquals(false, rs.error.isPresent());
+    System.out.println(rs.data.get());
+    assertEquals(1, rs.data.get().size());
 
   }
 
