@@ -8,7 +8,9 @@ API resonsável por buscar pedidos e registrar novos pedidos
 
 * Instalar o Docker [Docker link](https://docs.docker.com/desktop/install/windows-install/)
 * Instalar o Docker composer [Docker Compose Link](https://docs.docker.com/compose/install/)
-* Executar o comando **docker-compose up -d** para criar o container com o Docker
+* Executar o comando **docker-compose up -d** para montar o ambiente
+* Executar o ./mvnw test para validar se o projeto está funcionando
+* Executar "./mvnw quarkus:dev -Dquarkus.profile=local" para rodar em modo de desenvolvimento
 
 ## Detalhes sobre a API
 
