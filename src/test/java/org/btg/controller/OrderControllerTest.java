@@ -82,8 +82,8 @@ public class OrderControllerTest {
     List<OrderInputDto.OrderItem> items = new ArrayList<>();
     OrderItem item = new OrderItem();
 
-    dto.setCodClient(2);
-    dto.setCodOrder(1004);
+    dto.setCodClient(20);
+    dto.setCodOrder(500);
     dto.setItems(items);
     items.add(item);
     item.setPrice(new BigDecimal("1000.00"));
@@ -102,7 +102,7 @@ public class OrderControllerTest {
     var rs = given()
         .header("Authorization", token)
         .when()
-        .get("clients/" + 2)
+        .get("clients/" + 20)
         .then()
         .statusCode(200)
         .extract()

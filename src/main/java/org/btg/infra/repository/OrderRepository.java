@@ -15,6 +15,7 @@ import org.btg.infra.port.repository.OrderRepositoryPort;
 import org.btg.shared.error.ConstraintError;
 import org.btg.shared.error.DbError;
 import org.btg.shared.error.NotFoundError;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import io.agroal.api.AgroalDataSource;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,14 +27,18 @@ public class OrderRepository implements OrderRepositoryPort {
   @Inject
   AgroalDataSource connectionPool;
 
+  @ConfigProperty(name = "db.schema")
+  private String schema;
+
   @Override
   public void createOrder(int order, int codClient) throws DbError, ConstraintError {
     String sql = """
-        insert into btg.order (id, id_client) values (?,?)
+        insert into "order" (id, id_client) values (?,?)
             """;
 
     try (Connection conn = connectionPool.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
+      conn.setSchema(this.schema);
 
       ps.setInt(1, order);
       ps.setInt(2, codClient);
@@ -50,11 +55,11 @@ public class OrderRepository implements OrderRepositoryPort {
   @Override
   public void insertOrderItems(int order, List<OrderItem> entities) throws DbError {
     String sql = """
-        insert into btg.item (id_order, product_name, price, total) values (?,?,?,?)
+        insert into "item" (id_order, product_name, price, total) values (?,?,?,?)
         """;
-
     try (Connection conn = connectionPool.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
+      conn.setSchema(this.schema);
 
       for (var item : entities) {
 
@@ -75,14 +80,15 @@ public class OrderRepository implements OrderRepositoryPort {
   @Override
   public List<ItemDto> getOrderByCodClient(int cod, int limit, int page) throws DbError {
     String sql = """
-        select o.id, i.product_name, i.total, i.price from btg."order" o
-        join btg."item" i on i.id_order = o.id
+        select o.id, i.product_name, i.total, i.price from "order" o
+        join "item" i on i.id_order = o.id
         where o.id_client = ?
         offset ? limit ?
                 """;
 
     try (Connection conn = connectionPool.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
+      conn.setSchema(this.schema);
 
       ps.setInt(1, cod);
       ps.setInt(2, (page - 1) * limit);
@@ -112,13 +118,14 @@ public class OrderRepository implements OrderRepositoryPort {
   @Override
   public Long getCountOrderByCodClient(int cod) throws DbError {
     String sql = """
-        select count(o.id) from btg."order" o
-        join btg."item" i on i.id_order = o.id
+        select count(o.id) from "order" o
+        join "item" i on i.id_order = o.id
         where o.id_client = ?
                 """;
 
     try (Connection conn = connectionPool.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
+      conn.setSchema(this.schema);
       ps.setInt(1, cod);
 
       try (ResultSet rs = ps.executeQuery()) {
@@ -133,13 +140,14 @@ public class OrderRepository implements OrderRepositoryPort {
   @Override
   public OrderOutputDto.TotalOrder getTotalOrderByCodClient(int cod) throws DbError, NotFoundError, Exception {
     String sql = """
-          select o.id_client, count(o.id) total from btg."order" o
+          select o.id_client, count(o.id) total from "order" o
           where o.id_client = ?
           group by 1
         """;
 
     try (Connection conn = connectionPool.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
+      conn.setSchema(this.schema);
       ps.setInt(1, cod);
 
       try (ResultSet rs = ps.executeQuery()) {
@@ -166,13 +174,14 @@ public class OrderRepository implements OrderRepositoryPort {
   @Override
   public TotalOrderPrice getTotalPriceOrderByCodOrder(int cod) throws DbError, NotFoundError, Exception {
     String sql = """
-        select i.id_order, sum(i.price) total_price from btg.item i
+        select i.id_order, sum(i.price) total_price from item i
         where i.id_order = ?
         group by 1
             """;
 
     try (Connection conn = connectionPool.getConnection();
         PreparedStatement ps = conn.prepareStatement(sql)) {
+      conn.setSchema(this.schema);
       ps.setInt(1, cod);
 
       try (ResultSet rs = ps.executeQuery()) {
